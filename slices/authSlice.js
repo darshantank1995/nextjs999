@@ -38,6 +38,8 @@ export const loginUser = createAsyncThunk(
 
       storage.setItem("auth", JSON.stringify(auth));
 
+   
+
       return auth;
     } catch (err) {
       return rejectWithValue("Something went wrong. Try again.");
@@ -65,6 +67,8 @@ const authSlice = createSlice({
       state.success = false;
       localStorage.removeItem("auth");
       sessionStorage.removeItem("auth");
+
+      Cookies.remove("auth");
     },
      abc: () => {
       console.log(11);

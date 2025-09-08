@@ -1,4 +1,9 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  images: {
+    domains: ["fakestoreapi.com"], // allow product images
+  },
+};
+
 
 export default nextConfig;

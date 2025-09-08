@@ -7,6 +7,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser,abc  } from "../../../slices/authSlice";
+import Cookies from "js-cookie";
 
 const schema = yup.object().shape({
   email: yup.string().required("Email/Username is required"),
@@ -30,6 +31,11 @@ export default function LoginPage() {
     // await dispatch(abc());
 
     if (loginUser.fulfilled.match(result)) {
+       Cookies.set("auth",JSON.stringify(result.payload), {
+      expires: data.remember ? 7 : 1, // 7 days if remember checked
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
       setTimeout(() => router.push("/dashboard"), 400);
     }
   };

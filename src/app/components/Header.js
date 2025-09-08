@@ -2,28 +2,27 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Cookies from "js-cookie";
 
 export default function Header() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(null); // null = not checked yet
   const pathname = usePathname();
 
   const checkAuth = () => {
     try {
-      const raw = localStorage.getItem("auth") || sessionStorage.getItem("auth");
+      const raw = Cookies.get("auth");
       const auth = raw ? JSON.parse(raw) : null;
-      const ok = !!auth?.accessToken && Date.now() < (auth?.expiresAt || 0);
+      const ok = auth?.accessToken;
       setIsLoggedIn(ok);
     } catch {
       setIsLoggedIn(false);
     }
   };
 
-  // Check on mount and whenever the route changes
   useEffect(() => {
     checkAuth();
   }, [pathname]);
 
-  // Listen to focus, storage, and custom "auth-changed"
   useEffect(() => {
     const onFocus = () => checkAuth();
     const onStorage = () => checkAuth();
@@ -44,13 +43,20 @@ export default function Header() {
     localStorage.removeItem("auth");
     sessionStorage.removeItem("auth");
     window.dispatchEvent(new Event("auth-changed"));
+    Cookies.remove("auth");
     window.location.href = "/login";
   };
+
+  // 👉 Don’t render nav items until we know login state
+  if (isLoggedIn === null) {
+    return null; // or return a skeleton loader/spinner
+  }
 
   return (
     <nav className="navbar navbar-expand-lg bg-body-tertiary">
       <div className="container-fluid">
-        <a className="navbar-brand" href="#">Navbar</a>
+
+          <Link  className="navbar-brand" href="/" >Navbar</Link>
 
         <button
           className="navbar-toggler"
@@ -66,15 +72,22 @@ export default function Header() {
 
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav">
-
-            {/* Home only if logged in */}
             {isLoggedIn && (
-              <li className="nav-item">
-                <Link href="/dashboard" className="nav-link">Home</Link>
-              </li>
+              <>
+                <li className="nav-item">
+                  <Link href="/dashboard" className="nav-link">Home</Link>
+                </li>
+                <li className="nav-item">
+                  <Link href="/todo" className="nav-link">Todo</Link>
+                </li>
+                <li className="nav-item">
+                  <button className="btn btn-link nav-link" onClick={logout}>
+                    Logout
+                  </button>
+                </li>
+              </>
             )}
 
-            {/* Login/Register only if NOT logged in */}
             {!isLoggedIn && (
               <>
                 <li className="nav-item">
@@ -85,16 +98,6 @@ export default function Header() {
                 </li>
               </>
             )}
-
-            {/* Logout only if logged in */}
-            {isLoggedIn && (
-              <li className="nav-item">
-                <button className="btn btn-link nav-link" onClick={logout}>
-                  Logout
-                </button>
-              </li>
-            )}
-
           </ul>
         </div>
       </div>
